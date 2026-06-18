@@ -9,7 +9,8 @@
  *    aus dem Report heraus und merkt sich content_deleted.
  *
  * Idempotenz über die Flags `counted` / `content_deleted`; ein In-Memory-Lock verhindert
- * Rekursion durch die eigenen Report-Updates.
+ * Rekursion durch die eigenen Report-Updates. Report-Updates laufen über die Document-API
+ * (korrekte Relations-Syntax), der Nutzer-Zähler über die Query-Engine (Skalar).
  */
 
 const processing = new Set();
@@ -36,9 +37,9 @@ async function handleVerdict(result) {
         data: { [field]: (user[field] || 0) + 1 },
       });
     }
-    await strapi.db.query('api::report.report').update({
-      where: { id: result.id },
-      data: { counted: true, ...(user ? { reported_user: user.id } : {}) },
+    await strapi.documents('api::report.report').update({
+      documentId: result.documentId,
+      data: { counted: true, ...(user ? { reported_user: { set: [user.documentId] } } : {}) },
     });
   } else {
     if (user) {
@@ -47,9 +48,9 @@ async function handleVerdict(result) {
         data: { [field]: Math.max(0, (user[field] || 0) - 1) },
       });
     }
-    await strapi.db.query('api::report.report').update({
-      where: { id: result.id },
-      data: { counted: false, reported_user: null },
+    await strapi.documents('api::report.report').update({
+      documentId: result.documentId,
+      data: { counted: false, reported_user: { set: [] } },
     });
   }
 }
@@ -73,9 +74,8 @@ async function handleAction(result) {
     deleted = true;
   }
 
-  // Ergebnis festhalten + Aktion zurücksetzen, Status auf 'resolved'.
-  await strapi.db.query('api::report.report').update({
-    where: { id: result.id },
+  await strapi.documents('api::report.report').update({
+    documentId: result.documentId,
     data: { content_deleted: deleted, moderation_action: 'none', status: 'resolved' },
   });
 }

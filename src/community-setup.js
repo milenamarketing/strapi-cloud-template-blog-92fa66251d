@@ -154,6 +154,11 @@ async function setupCommunity() {
     await ensureRawPermission('moderator', 'plugin::upload.content-api.upload');
     await ensureRawPermission('superadmin', 'plugin::upload.content-api.upload');
 
+    // users-permissions "me": authenticated hat es per Default – für moderator/superadmin
+    // (eigene Rollen) explizit setzen, sonst liefert /api/users/me 403.
+    await ensureRawPermission('moderator', 'plugin::users-permissions.user.me');
+    await ensureRawPermission('superadmin', 'plugin::users-permissions.user.me');
+
     // Feste LunaCycle-Accounts zur SuperAdmin-Rolle promoten (Env-gesteuert).
     await promoteSuperAdmins();
 
