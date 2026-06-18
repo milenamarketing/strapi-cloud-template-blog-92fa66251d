@@ -588,6 +588,7 @@ export interface ApiThreadThread extends Struct.CollectionTypeSchema {
       'api::thread.thread'
     > &
       Schema.Attribute.Private;
+    pinned: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     publishedAt: Schema.Attribute.DateTime;
     title: Schema.Attribute.String &
       Schema.Attribute.Required &

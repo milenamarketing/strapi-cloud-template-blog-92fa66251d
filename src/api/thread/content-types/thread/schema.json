@@ -29,6 +29,10 @@
       "default": 0,
       "min": 0
     },
+    "pinned": {
+      "type": "boolean",
+      "default": false
+    },
     "author_name": {
       "type": "string"
     },
