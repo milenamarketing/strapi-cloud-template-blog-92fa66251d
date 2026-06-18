@@ -13,6 +13,8 @@
  * (korrekte Relations-Syntax), der Nutzer-Zähler über die Query-Engine (Skalar).
  */
 
+const { recomputeReportAlert } = require('../../../../community-moderation');
+
 const processing = new Set();
 
 /** Verdict → Zähler + Profil-Verknüpfung pflegen. */
@@ -90,6 +92,8 @@ module.exports = {
     try {
       await handleVerdict(result);
       await handleAction(result);
+      // Warn-Markierung des gemeldeten Nutzers für die Listen-Spalte aktualisieren.
+      await recomputeReportAlert(result.reported_user_base44_id);
     } catch (error) {
       strapi.log.error('[report.lifecycles] Verarbeitung fehlgeschlagen:');
       strapi.log.error(error);

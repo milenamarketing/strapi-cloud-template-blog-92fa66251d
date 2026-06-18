@@ -7,4 +7,9 @@ module.exports = ({ env }) => ({
   webhooks: {
     populateRelations: env.bool('WEBHOOKS_POPULATE_RELATIONS', false),
   },
+  // Täglicher Cron für die report_alert-Warn-Markierung (7-Tage-Fenster).
+  cron: {
+    enabled: true,
+    tasks: require('./cron'),
+  },
 });

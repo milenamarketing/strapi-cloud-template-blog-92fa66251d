@@ -66,4 +66,48 @@ async function avatarUrlOf(user) {
   return (full && full.avatar && full.avatar.url) || null;
 }
 
-module.exports = { isModerator, isSuperAdmin, roleTypeOf, banBlocks, canModify, avatarUrlOf };
+// Schwelle: mehr als so viele bestätigte Meldungen in 7 Tagen → Warn-Markierung.
+const ALERT_THRESHOLD = 10;
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Aktualisiert das Warn-Feld `report_alert` eines Nutzers (für die Listen-Spalte):
+ * "⚠️", wenn er in den letzten 7 Tagen > ALERT_THRESHOLD bestätigte (justified) Meldungen
+ * erhalten hat, sonst leer. Zählt über das denormalisierte `reported_user_base44_id`.
+ */
+async function recomputeReportAlert(base44Id) {
+  if (!base44Id) return;
+  const since = new Date(Date.now() - SEVEN_DAYS_MS);
+  const count = await strapi.db.query('api::report.report').count({
+    where: { reported_user_base44_id: base44Id, verdict: 'justified', createdAt: { $gte: since } },
+  });
+  const user = await strapi.db
+    .query('plugin::users-permissions.user')
+    .findOne({ where: { base44_id: base44Id } });
+  if (!user) return;
+  const alert = count > ALERT_THRESHOLD ? '⚠️' : '';
+  if ((user.report_alert || '') !== alert) {
+    await strapi.db
+      .query('plugin::users-permissions.user')
+      .update({ where: { id: user.id }, data: { report_alert: alert } });
+  }
+}
+
+/** Recompute für alle Nutzer mit base44_id (für den täglichen Cron / Fenster-Ablauf). */
+async function recomputeAllReportAlerts() {
+  const users = await strapi.db
+    .query('plugin::users-permissions.user')
+    .findMany({ where: { base44_id: { $notNull: true } }, select: ['id', 'base44_id'] });
+  for (const u of users) await recomputeReportAlert(u.base44_id);
+}
+
+module.exports = {
+  isModerator,
+  isSuperAdmin,
+  roleTypeOf,
+  banBlocks,
+  canModify,
+  avatarUrlOf,
+  recomputeReportAlert,
+  recomputeAllReportAlerts,
+};

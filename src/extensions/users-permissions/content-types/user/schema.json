@@ -82,6 +82,9 @@
       "required": false,
       "allowedTypes": ["images"]
     },
+    "report_alert": {
+      "type": "string"
+    },
     "reporting_count_comments": {
       "type": "integer",
       "default": 0,
