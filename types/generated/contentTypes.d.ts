@@ -1062,6 +1062,7 @@ export interface PluginUsersPermissionsUser
     timestamps: true;
   };
   attributes: {
+    avatar: Schema.Attribute.Media<'images'>;
     base44_id: Schema.Attribute.String & Schema.Attribute.Unique;
     bio: Schema.Attribute.Text;
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
