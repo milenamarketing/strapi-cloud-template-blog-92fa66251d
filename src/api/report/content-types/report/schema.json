@@ -38,6 +38,22 @@
       "enum": ["open", "reviewed", "resolved"],
       "default": "open"
     },
+    "verdict": {
+      "type": "enumeration",
+      "enum": ["pending", "justified", "rejected"],
+      "default": "pending"
+    },
+    "reported_user_name": {
+      "type": "string"
+    },
+    "reported_user_base44_id": {
+      "type": "string"
+    },
+    "counted": {
+      "type": "boolean",
+      "default": false,
+      "private": true
+    },
     "thread": {
       "type": "relation",
       "relation": "manyToOne",
