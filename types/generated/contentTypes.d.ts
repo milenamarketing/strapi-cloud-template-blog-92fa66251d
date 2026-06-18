@@ -443,7 +443,7 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
 export interface ApiCommentComment extends Struct.CollectionTypeSchema {
   collectionName: 'comments';
   info: {
-    description: 'Antworten auf Community-Threads (verschachtelbar \u00FCber parent)';
+    description: 'Antworten auf Community-Threads (verschachtelbar \u00FCber parent, optional mit Bildern)';
     displayName: 'Comment';
     pluralName: 'comments';
     singularName: 'comment';
@@ -461,6 +461,7 @@ export interface ApiCommentComment extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    images: Schema.Attribute.Media<'images', true>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',

@@ -5,7 +5,7 @@
     "singularName": "comment",
     "pluralName": "comments",
     "displayName": "Comment",
-    "description": "Antworten auf Community-Threads (verschachtelbar über parent)"
+    "description": "Antworten auf Community-Threads (verschachtelbar über parent, optional mit Bildern)"
   },
   "options": {
     "draftAndPublish": false
@@ -41,6 +41,12 @@
       "relation": "oneToMany",
       "target": "api::comment.comment",
       "mappedBy": "parent"
+    },
+    "images": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["images"]
     }
   }
 }

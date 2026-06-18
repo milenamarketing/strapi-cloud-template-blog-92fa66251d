@@ -53,6 +53,21 @@ async function ensurePermissions(roleType, permissionMap) {
   }
 }
 
+/** Setzt eine einzelne Permission (volle action-ID, z. B. Plugin-Action) für eine Rolle. */
+async function ensureRawPermission(roleType, fullAction) {
+  const role = await findRoleByType(roleType);
+  if (!role) return;
+  const existing = await strapi.query('plugin::users-permissions.permission').findOne({
+    where: { action: fullAction, role: role.id },
+  });
+  if (!existing) {
+    await strapi.query('plugin::users-permissions.permission').create({
+      data: { action: fullAction, role: role.id },
+    });
+    strapi.log.info(`[community-setup] Permission gesetzt: ${roleType} → ${fullAction}`);
+  }
+}
+
 /** Legt die Moderator-Rolle an, falls sie noch nicht existiert. */
 async function ensureModeratorRole() {
   const existing = await findRoleByType('moderator');
@@ -77,6 +92,10 @@ async function setupCommunity() {
     // Moderator-Rolle bekommt vorerst dieselben Rechte wie authenticated (Feinheiten später).
     await ensureModeratorRole();
     await ensurePermissions('moderator', AUTHENTICATED_PERMISSIONS);
+
+    // Bild-Upload für Kommentare: eingeloggte Nutzerinnen + Moderatoren dürfen hochladen.
+    await ensureRawPermission('authenticated', 'plugin::upload.content-api.upload');
+    await ensureRawPermission('moderator', 'plugin::upload.content-api.upload');
 
     strapi.log.info('[community-setup] Community-Rollen & -Rechte sichergestellt.');
   } catch (error) {

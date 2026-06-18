@@ -18,7 +18,7 @@ module.exports = createCoreController('api::comment.comment', ({ strapi }) => ({
     const user = ctx.state.user;
     if (!user) return ctx.unauthorized('Login erforderlich.');
 
-    const { content, thread, parent } = ctx.request.body.data || {};
+    const { content, thread, parent, images } = ctx.request.body.data || {};
 
     const entity = await strapi.documents('api::comment.comment').create({
       data: {
@@ -28,6 +28,8 @@ module.exports = createCoreController('api::comment.comment', ({ strapi }) => ({
         author: { connect: [user.documentId] },
         // Optionale verschachtelte Antwort: parent = documentId des Eltern-Kommentars.
         ...(parent ? { parent: { connect: [parent] } } : {}),
+        // Optionale Bild-Anhänge: images = Array von Upload-File-IDs.
+        ...(Array.isArray(images) && images.length ? { images } : {}),
       },
     });
 
