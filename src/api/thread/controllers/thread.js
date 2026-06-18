@@ -29,6 +29,7 @@ module.exports = createCoreController('api::thread.thread', ({ strapi }) => ({
         category,
         likes_count: 0,
         author_name: displayNameOf(user),
+        author_base44_id: user.base44_id || String(user.id),
         author: { connect: [user.documentId] },
         ...(Array.isArray(images) && images.length ? { images } : {}),
       },

@@ -19,6 +19,9 @@
     "author_name": {
       "type": "string"
     },
+    "author_base44_id": {
+      "type": "string"
+    },
     "thread": {
       "type": "relation",
       "relation": "manyToOne",
