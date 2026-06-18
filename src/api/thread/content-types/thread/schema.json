@@ -1,0 +1,44 @@
+{
+  "kind": "collectionType",
+  "collectionName": "threads",
+  "info": {
+    "singularName": "thread",
+    "pluralName": "threads",
+    "displayName": "Thread",
+    "description": "Community-Themen (Beiträge), die Nutzerinnen erstellen"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "maxLength": 200
+    },
+    "content": {
+      "type": "text",
+      "required": true
+    },
+    "category": {
+      "type": "string"
+    },
+    "likes_count": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "author": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "comments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::comment.comment",
+      "mappedBy": "thread"
+    }
+  }
+}
