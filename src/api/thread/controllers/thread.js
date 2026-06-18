@@ -9,7 +9,7 @@
  */
 
 const { createCoreController } = require('@strapi/strapi').factories;
-const { canModify, avatarUrlOf } = require('../../../community-moderation');
+const { canModify, isModerator, avatarUrlOf } = require('../../../community-moderation');
 
 function displayNameOf(user) {
   return user.display_name || user.username || 'Anonym';
@@ -49,6 +49,15 @@ module.exports = createCoreController('api::thread.thread', ({ strapi }) => ({
     });
     if (!thread) return ctx.notFound();
     if (!(await canModify(user, thread))) return ctx.forbidden('Keine Berechtigung.');
+
+    // Anpinnen & Kommentare-Sperren nur für Moderatorinnen/Admin.
+    // Autorinnen dürfen ihren Beitrag bearbeiten, aber diese Felder nicht ändern.
+    const data = ctx.request.body && ctx.request.body.data;
+    if (data && !(await isModerator(user))) {
+      delete data.pinned;
+      delete data.comments_enabled;
+    }
+
     return super.update(ctx);
   },
 
