@@ -18,7 +18,7 @@ module.exports = createCoreController('api::comment.comment', ({ strapi }) => ({
     const user = ctx.state.user;
     if (!user) return ctx.unauthorized('Login erforderlich.');
 
-    const { content, thread } = ctx.request.body.data || {};
+    const { content, thread, parent } = ctx.request.body.data || {};
 
     const entity = await strapi.documents('api::comment.comment').create({
       data: {
@@ -26,6 +26,8 @@ module.exports = createCoreController('api::comment.comment', ({ strapi }) => ({
         thread,
         author_name: displayNameOf(user),
         author: { connect: [user.documentId] },
+        // Optionale verschachtelte Antwort: parent = documentId des Eltern-Kommentars.
+        ...(parent ? { parent: { connect: [parent] } } : {}),
       },
     });
 
