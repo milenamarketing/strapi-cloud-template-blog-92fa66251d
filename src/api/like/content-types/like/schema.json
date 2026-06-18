@@ -12,6 +12,9 @@
   },
   "pluginOptions": {},
   "attributes": {
+    "user_base44_id": {
+      "type": "string"
+    },
     "thread": {
       "type": "relation",
       "relation": "manyToOne",

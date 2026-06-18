@@ -502,6 +502,7 @@ export interface ApiLikeLike extends Struct.CollectionTypeSchema {
       'manyToOne',
       'plugin::users-permissions.user'
     >;
+    user_base44_id: Schema.Attribute.String;
   };
 }
 

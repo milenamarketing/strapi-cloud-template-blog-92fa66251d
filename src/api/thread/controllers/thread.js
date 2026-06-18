@@ -55,7 +55,11 @@ module.exports = createCoreController('api::thread.thread', ({ strapi }) => ({
       liked = false;
     } else {
       await strapi.documents('api::like.like').create({
-        data: { thread: { connect: [threadDocId] }, user: { connect: [user.documentId] } },
+        data: {
+          thread: { connect: [threadDocId] },
+          user: { connect: [user.documentId] },
+          user_base44_id: user.base44_id || String(user.id),
+        },
       });
       liked = true;
     }
