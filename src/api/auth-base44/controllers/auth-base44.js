@@ -4,7 +4,7 @@
  * Auth-Brücke-Controller: tauscht ein Base44-Token gegen einen Strapi-JWT.
  */
 
-const { verifyBase44Token, findOrCreateUser } = require('../services/auth-base44');
+const { verifyBase44Token, findOrCreateUser, ensureSuperAdminRole } = require('../services/auth-base44');
 
 module.exports = {
   async exchange(ctx) {
@@ -27,10 +27,13 @@ module.exports = {
       return ctx.forbidden('Dieser Account ist gesperrt.');
     }
 
+    // Feste LunaCycle-Accounts ggf. zur SuperAdmin-Rolle promoten (Env-gesteuert).
+    await ensureSuperAdminRole(user);
+
     // Strapi-JWT für die weiteren Community-Calls ausstellen.
     const jwt = strapi.plugin('users-permissions').service('jwt').issue({ id: user.id });
 
-    // Rolle + Avatar laden (Frontend erkennt Moderatorinnen + zeigt Profilbild).
+    // Rolle + Avatar laden (Frontend erkennt Moderatorinnen/SuperAdmin + zeigt Profilbild).
     const fullUser = await strapi.db
       .query('plugin::users-permissions.user')
       .findOne({ where: { id: user.id }, populate: ['role', 'avatar'] });
@@ -48,6 +51,10 @@ module.exports = {
         base44_id: user.base44_id,
         role,
         avatar,
+        // Sperr-Status (Frontend setzt Sperre um + zeigt Sperr-Modal).
+        is_banned: !!fullUser.is_banned,
+        ban_type: fullUser.ban_type || null,
+        ban_reason: fullUser.ban_reason || null,
       },
     };
   },

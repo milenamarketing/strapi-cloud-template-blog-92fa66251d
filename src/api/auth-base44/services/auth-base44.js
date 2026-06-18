@@ -92,4 +92,33 @@ async function findOrCreateUser(base44User) {
   });
 }
 
-module.exports = { verifyBase44Token, findOrCreateUser };
+/** Ist diese Base44-ID als SuperAdmin konfiguriert? (Env SUPERADMIN_BASE44_IDS, comma-separated) */
+function isConfiguredSuperAdmin(base44Id) {
+  const raw = process.env.SUPERADMIN_BASE44_IDS || '';
+  const ids = raw.split(',').map((s) => s.trim()).filter(Boolean);
+  return ids.includes(String(base44Id));
+}
+
+/**
+ * Promotet den Nutzer zur SuperAdmin-Rolle, wenn seine Base44-ID konfiguriert ist.
+ * Idempotent – ändert nur, wenn die Rolle abweicht. Greift sofort beim (ersten) Login.
+ */
+async function ensureSuperAdminRole(user) {
+  if (!user || !isConfiguredSuperAdmin(user.base44_id)) return user;
+
+  const role = await strapi
+    .query('plugin::users-permissions.role')
+    .findOne({ where: { type: 'superadmin' } });
+  if (!role) return user;
+
+  const current = await strapi
+    .query('plugin::users-permissions.user')
+    .findOne({ where: { id: user.id }, populate: ['role'] });
+  if (current && current.role && current.role.type === 'superadmin') return user;
+
+  return strapi
+    .query('plugin::users-permissions.user')
+    .update({ where: { id: user.id }, data: { role: role.id } });
+}
+
+module.exports = { verifyBase44Token, findOrCreateUser, ensureSuperAdminRole };

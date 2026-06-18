@@ -1,0 +1,39 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ban_appeals",
+  "info": {
+    "singularName": "ban-appeal",
+    "pluralName": "ban-appeals",
+    "displayName": "Ban Appeal",
+    "description": "Einsprüche gesperrter Nutzer (erscheinen am User-Profil)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "message": {
+      "type": "text"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "ban_appeals"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "user_base44_id": {
+      "type": "string"
+    },
+    "ban_type_at_time": {
+      "type": "string"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["open", "seen"],
+      "default": "open"
+    }
+  }
+}

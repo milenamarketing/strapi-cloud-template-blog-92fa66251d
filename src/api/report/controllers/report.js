@@ -21,17 +21,30 @@ module.exports = createCoreController('api::report.report', ({ strapi }) => ({
 
     const { reason, details, thread, comment } = ctx.request.body.data || {};
 
-    // Typ + Kontext-Text aus dem gemeldeten Inhalt ableiten.
+    // Typ + Kontext-Text + Autor des gemeldeten Inhalts ableiten.
     let targetType = null;
     let contextText = null;
+    let authorId = null; // numerische User-ID des gemeldeten Autors (für Zähler)
     if (thread) {
       targetType = 'thread';
-      const t = await strapi.documents('api::thread.thread').findOne({ documentId: thread });
-      if (t) contextText = `${t.title || ''} — ${t.content || ''}`.slice(0, 1000);
+      const t = await strapi.documents('api::thread.thread').findOne({
+        documentId: thread,
+        populate: ['author'],
+      });
+      if (t) {
+        contextText = `${t.title || ''} — ${t.content || ''}`.slice(0, 1000);
+        authorId = t.author && t.author.id;
+      }
     } else if (comment) {
       targetType = 'comment';
-      const c = await strapi.documents('api::comment.comment').findOne({ documentId: comment });
-      if (c) contextText = (c.content || '').slice(0, 1000);
+      const c = await strapi.documents('api::comment.comment').findOne({
+        documentId: comment,
+        populate: ['author'],
+      });
+      if (c) {
+        contextText = (c.content || '').slice(0, 1000);
+        authorId = c.author && c.author.id;
+      }
     }
 
     const entity = await strapi.documents('api::report.report').create({
@@ -47,6 +60,25 @@ module.exports = createCoreController('api::report.report', ({ strapi }) => ({
         ...(comment ? { comment: { connect: [comment] } } : {}),
       },
     });
+
+    // Reporting-Zähler des gemeldeten Autors erhöhen (rein informativ für den SuperAdmin).
+    if (authorId) {
+      const field = targetType === 'comment' ? 'reporting_count_comments' : 'reporting_count_posts';
+      try {
+        const author = await strapi.db
+          .query('plugin::users-permissions.user')
+          .findOne({ where: { id: authorId } });
+        if (author) {
+          await strapi.db.query('plugin::users-permissions.user').update({
+            where: { id: authorId },
+            data: { [field]: (author[field] || 0) + 1 },
+          });
+        }
+      } catch (error) {
+        strapi.log.error('[report] Reporting-Zähler konnte nicht erhöht werden:');
+        strapi.log.error(error);
+      }
+    }
 
     const sanitized = await this.sanitizeOutput(entity, ctx);
     return this.transformResponse(sanitized);

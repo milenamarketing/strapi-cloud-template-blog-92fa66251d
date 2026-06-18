@@ -8,7 +8,7 @@
  */
 
 const { createCoreController } = require('@strapi/strapi').factories;
-const { canModify, avatarUrlOf } = require('../../../community-moderation');
+const { canModify, avatarUrlOf, banBlocks } = require('../../../community-moderation');
 
 function displayNameOf(user) {
   return user.display_name || user.username || 'Anonym';
@@ -18,6 +18,15 @@ module.exports = createCoreController('api::comment.comment', ({ strapi }) => ({
   async create(ctx) {
     const user = ctx.state.user;
     if (!user) return ctx.unauthorized('Login erforderlich.');
+
+    // Gesperrte Nutzer (comments_only / full_ban) dürfen nicht kommentieren.
+    if (banBlocks(user, 'comment')) {
+      return ctx.forbidden('Account gesperrt.', {
+        banned: true,
+        ban_type: user.ban_type,
+        ban_reason: user.ban_reason || null,
+      });
+    }
 
     const { content, thread, parent, images } = ctx.request.body.data || {};
 

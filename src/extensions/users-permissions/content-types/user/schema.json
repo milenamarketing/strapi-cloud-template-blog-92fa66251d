@@ -81,6 +81,36 @@
       "multiple": false,
       "required": false,
       "allowedTypes": ["images"]
+    },
+    "reporting_count_comments": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "reporting_count_posts": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "is_banned": {
+      "type": "boolean",
+      "default": false
+    },
+    "ban_reason": {
+      "type": "string"
+    },
+    "ban_type": {
+      "type": "enumeration",
+      "enum": ["comments_only", "posts_only", "full_ban"]
+    },
+    "ban_date": {
+      "type": "datetime"
+    },
+    "ban_appeals": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::ban-appeal.ban-appeal",
+      "mappedBy": "user"
     }
   }
 }

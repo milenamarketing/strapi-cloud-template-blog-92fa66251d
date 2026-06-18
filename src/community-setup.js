@@ -23,12 +23,14 @@ const AUTHENTICATED_PERMISSIONS = {
   comment: ['find', 'findOne', 'create', 'update', 'delete'],
   like: ['find', 'findOne', 'create', 'delete'],
   report: ['create'],
+  'ban-appeal': ['create'],
   'auth-base44': ['updateAvatar'],
 };
 
-// Moderatorinnen dürfen zusätzlich Meldungen einsehen/bearbeiten.
+// Moderatorinnen/SuperAdmins dürfen zusätzlich Meldungen + Einsprüche einsehen/bearbeiten.
 const MODERATOR_EXTRA_PERMISSIONS = {
   report: ['find', 'findOne', 'update', 'delete'],
+  'ban-appeal': ['find', 'findOne', 'update', 'delete'],
 };
 
 /** Findet eine Rolle anhand ihres Typs (z. B. "public", "authenticated"). */
@@ -91,6 +93,47 @@ async function ensureModeratorRole() {
   return role;
 }
 
+/** Legt die SuperAdmin-Rolle an (LunaCycle-Team), falls noch nicht vorhanden. */
+async function ensureSuperadminRole() {
+  const existing = await findRoleByType('superadmin');
+  if (existing) return existing;
+
+  const role = await strapi.query('plugin::users-permissions.role').create({
+    data: {
+      name: 'SuperAdmin',
+      description: 'LunaCycle-Team: volle Community-Kontrolle (Sperren, Löschen, Einsprüche).',
+      type: 'superadmin',
+    },
+  });
+  strapi.log.info('[community-setup] Rolle "SuperAdmin" angelegt.');
+  return role;
+}
+
+/**
+ * Promotet feste Base44-IDs (Env SUPERADMIN_BASE44_IDS, comma-separated) zur SuperAdmin-Rolle.
+ * Reproduzierbar bei jedem Bootstrap; idempotent (setzt nur, wenn Rolle abweicht).
+ */
+async function promoteSuperAdmins() {
+  const raw = process.env.SUPERADMIN_BASE44_IDS || '';
+  const ids = raw.split(',').map((s) => s.trim()).filter(Boolean);
+  if (ids.length === 0) return;
+
+  const role = await findRoleByType('superadmin');
+  if (!role) return;
+
+  for (const base44Id of ids) {
+    const user = await strapi
+      .query('plugin::users-permissions.user')
+      .findOne({ where: { base44_id: base44Id }, populate: ['role'] });
+    if (!user) continue; // noch nicht eingeloggt → wird beim Login promotet (auth-base44)
+    if (user.role && user.role.type === 'superadmin') continue;
+    await strapi
+      .query('plugin::users-permissions.user')
+      .update({ where: { id: user.id }, data: { role: role.id } });
+    strapi.log.info(`[community-setup] SuperAdmin gesetzt: base44_id=${base44Id}`);
+  }
+}
+
 async function setupCommunity() {
   try {
     await ensurePermissions('public', PUBLIC_PERMISSIONS);
@@ -101,9 +144,18 @@ async function setupCommunity() {
     await ensurePermissions('moderator', AUTHENTICATED_PERMISSIONS);
     await ensurePermissions('moderator', MODERATOR_EXTRA_PERMISSIONS);
 
-    // Bild-Upload für Kommentare: eingeloggte Nutzerinnen + Moderatoren dürfen hochladen.
+    // SuperAdmin-Rolle (LunaCycle): alle Member-Rechte + Moderations-/Einspruch-Einsicht.
+    await ensureSuperadminRole();
+    await ensurePermissions('superadmin', AUTHENTICATED_PERMISSIONS);
+    await ensurePermissions('superadmin', MODERATOR_EXTRA_PERMISSIONS);
+
+    // Bild-Upload für Kommentare: eingeloggte Nutzerinnen + Moderatoren + SuperAdmin.
     await ensureRawPermission('authenticated', 'plugin::upload.content-api.upload');
     await ensureRawPermission('moderator', 'plugin::upload.content-api.upload');
+    await ensureRawPermission('superadmin', 'plugin::upload.content-api.upload');
+
+    // Feste LunaCycle-Accounts zur SuperAdmin-Rolle promoten (Env-gesteuert).
+    await promoteSuperAdmins();
 
     strapi.log.info('[community-setup] Community-Rollen & -Rechte sichergestellt.');
   } catch (error) {
