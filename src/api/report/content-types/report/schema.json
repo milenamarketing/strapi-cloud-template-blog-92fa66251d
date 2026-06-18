@@ -1,0 +1,45 @@
+{
+  "kind": "collectionType",
+  "collectionName": "reports",
+  "info": {
+    "singularName": "report",
+    "pluralName": "reports",
+    "displayName": "Report",
+    "description": "Gemeldete Beiträge/Kommentare (Moderation)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "reason": {
+      "type": "enumeration",
+      "enum": ["spam", "harassment", "inappropriate", "misinformation", "other"],
+      "default": "other"
+    },
+    "details": {
+      "type": "text"
+    },
+    "reporter_base44_id": {
+      "type": "string"
+    },
+    "reporter_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["open", "reviewed", "resolved"],
+      "default": "open"
+    },
+    "thread": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::thread.thread"
+    },
+    "comment": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::comment.comment"
+    }
+  }
+}

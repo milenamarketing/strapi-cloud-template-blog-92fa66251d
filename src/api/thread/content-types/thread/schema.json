@@ -42,6 +42,12 @@
       "relation": "oneToMany",
       "target": "api::comment.comment",
       "mappedBy": "thread"
+    },
+    "images": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["images"]
     }
   }
 }

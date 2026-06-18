@@ -22,6 +22,12 @@ const AUTHENTICATED_PERMISSIONS = {
   thread: ['find', 'findOne', 'create', 'update', 'delete', 'toggleLike'],
   comment: ['find', 'findOne', 'create', 'update', 'delete'],
   like: ['find', 'findOne', 'create', 'delete'],
+  report: ['create'],
+};
+
+// Moderatorinnen dürfen zusätzlich Meldungen einsehen/bearbeiten.
+const MODERATOR_EXTRA_PERMISSIONS = {
+  report: ['find', 'findOne', 'update', 'delete'],
 };
 
 /** Findet eine Rolle anhand ihres Typs (z. B. "public", "authenticated"). */
@@ -92,6 +98,7 @@ async function setupCommunity() {
     // Moderator-Rolle bekommt vorerst dieselben Rechte wie authenticated (Feinheiten später).
     await ensureModeratorRole();
     await ensurePermissions('moderator', AUTHENTICATED_PERMISSIONS);
+    await ensurePermissions('moderator', MODERATOR_EXTRA_PERMISSIONS);
 
     // Bild-Upload für Kommentare: eingeloggte Nutzerinnen + Moderatoren dürfen hochladen.
     await ensureRawPermission('authenticated', 'plugin::upload.content-api.upload');

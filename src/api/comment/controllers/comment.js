@@ -3,11 +3,12 @@
 /**
  * comment controller
  *
- * Erstellen über den Document-Service mit Whitelist: nur content/thread aus dem
- * Request. Autor serverseitig gesetzt (Relation + denormalisierter author_name).
+ * - create: Whitelist (content/thread/parent/images), Autor serverseitig.
+ * - update/delete: nur Autorin oder Moderatorin.
  */
 
 const { createCoreController } = require('@strapi/strapi').factories;
+const { canModify } = require('../../../community-moderation');
 
 function displayNameOf(user) {
   return user.display_name || user.username || 'Anonym';
@@ -26,14 +27,36 @@ module.exports = createCoreController('api::comment.comment', ({ strapi }) => ({
         thread,
         author_name: displayNameOf(user),
         author: { connect: [user.documentId] },
-        // Optionale verschachtelte Antwort: parent = documentId des Eltern-Kommentars.
         ...(parent ? { parent: { connect: [parent] } } : {}),
-        // Optionale Bild-Anhänge: images = Array von Upload-File-IDs.
         ...(Array.isArray(images) && images.length ? { images } : {}),
       },
     });
 
     const sanitized = await this.sanitizeOutput(entity, ctx);
     return this.transformResponse(sanitized);
+  },
+
+  async update(ctx) {
+    const user = ctx.state.user;
+    if (!user) return ctx.unauthorized('Login erforderlich.');
+    const comment = await strapi.documents('api::comment.comment').findOne({
+      documentId: ctx.params.id,
+      populate: ['author'],
+    });
+    if (!comment) return ctx.notFound();
+    if (!(await canModify(user, comment))) return ctx.forbidden('Keine Berechtigung.');
+    return super.update(ctx);
+  },
+
+  async delete(ctx) {
+    const user = ctx.state.user;
+    if (!user) return ctx.unauthorized('Login erforderlich.');
+    const comment = await strapi.documents('api::comment.comment').findOne({
+      documentId: ctx.params.id,
+      populate: ['author'],
+    });
+    if (!comment) return ctx.notFound();
+    if (!(await canModify(user, comment))) return ctx.forbidden('Keine Berechtigung.');
+    return super.delete(ctx);
   },
 }));

@@ -30,6 +30,12 @@ module.exports = {
     // Strapi-JWT für die weiteren Community-Calls ausstellen.
     const jwt = strapi.plugin('users-permissions').service('jwt').issue({ id: user.id });
 
+    // Rolle laden, damit das Frontend Moderatorinnen erkennt.
+    const fullUser = await strapi.db
+      .query('plugin::users-permissions.user')
+      .findOne({ where: { id: user.id }, populate: ['role'] });
+    const role = (fullUser && fullUser.role && fullUser.role.type) || 'authenticated';
+
     ctx.body = {
       jwt,
       user: {
@@ -39,6 +45,7 @@ module.exports = {
         email: user.email,
         display_name: user.display_name,
         base44_id: user.base44_id,
+        role,
       },
     };
   },

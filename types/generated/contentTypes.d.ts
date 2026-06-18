@@ -509,6 +509,45 @@ export interface ApiLikeLike extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiReportReport extends Struct.CollectionTypeSchema {
+  collectionName: 'reports';
+  info: {
+    description: 'Gemeldete Beitr\u00E4ge/Kommentare (Moderation)';
+    displayName: 'Report';
+    pluralName: 'reports';
+    singularName: 'report';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    comment: Schema.Attribute.Relation<'manyToOne', 'api::comment.comment'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    details: Schema.Attribute.Text;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::report.report'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    reason: Schema.Attribute.Enumeration<
+      ['spam', 'harassment', 'inappropriate', 'misinformation', 'other']
+    > &
+      Schema.Attribute.DefaultTo<'other'>;
+    reporter_base44_id: Schema.Attribute.String;
+    reporter_name: Schema.Attribute.String;
+    status: Schema.Attribute.Enumeration<['open', 'reviewed', 'resolved']> &
+      Schema.Attribute.DefaultTo<'open'>;
+    thread: Schema.Attribute.Relation<'manyToOne', 'api::thread.thread'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiThreadThread extends Struct.CollectionTypeSchema {
   collectionName: 'threads';
   info: {
@@ -532,6 +571,7 @@ export interface ApiThreadThread extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    images: Schema.Attribute.Media<'images', true>;
     likes_count: Schema.Attribute.Integer &
       Schema.Attribute.SetMinMax<
         {
@@ -1074,6 +1114,7 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::comment.comment': ApiCommentComment;
       'api::like.like': ApiLikeLike;
+      'api::report.report': ApiReportReport;
       'api::thread.thread': ApiThreadThread;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
