@@ -21,6 +21,14 @@ module.exports = createCoreController('api::comment.comment', ({ strapi }) => ({
 
     const { content, thread, parent, images } = ctx.request.body.data || {};
 
+    // Kommentare nur, wenn der Beitrag sie erlaubt.
+    if (thread) {
+      const targetThread = await strapi.documents('api::thread.thread').findOne({ documentId: thread });
+      if (targetThread && targetThread.comments_enabled === false) {
+        return ctx.forbidden('Kommentare sind für diesen Beitrag deaktiviert.');
+      }
+    }
+
     const entity = await strapi.documents('api::comment.comment').create({
       data: {
         content,

@@ -33,6 +33,10 @@
       "type": "boolean",
       "default": false
     },
+    "comments_enabled": {
+      "type": "boolean",
+      "default": true
+    },
     "author_name": {
       "type": "string"
     },
