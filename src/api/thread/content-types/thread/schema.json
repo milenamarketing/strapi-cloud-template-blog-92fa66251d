@@ -29,6 +29,9 @@
       "default": 0,
       "min": 0
     },
+    "author_name": {
+      "type": "string"
+    },
     "author": {
       "type": "relation",
       "relation": "manyToOne",

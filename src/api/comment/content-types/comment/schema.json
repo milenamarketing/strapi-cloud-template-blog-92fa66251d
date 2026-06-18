@@ -16,6 +16,9 @@
       "type": "text",
       "required": true
     },
+    "author_name": {
+      "type": "string"
+    },
     "thread": {
       "type": "relation",
       "relation": "manyToOne",
