@@ -23,6 +23,7 @@ const AUTHENTICATED_PERMISSIONS = {
   comment: ['find', 'findOne', 'create', 'update', 'delete'],
   like: ['find', 'findOne', 'create', 'delete'],
   report: ['create'],
+  'auth-base44': ['updateAvatar'],
 };
 
 // Moderatorinnen dürfen zusätzlich Meldungen einsehen/bearbeiten.

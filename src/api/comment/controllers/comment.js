@@ -8,7 +8,7 @@
  */
 
 const { createCoreController } = require('@strapi/strapi').factories;
-const { canModify } = require('../../../community-moderation');
+const { canModify, avatarUrlOf } = require('../../../community-moderation');
 
 function displayNameOf(user) {
   return user.display_name || user.username || 'Anonym';
@@ -35,6 +35,7 @@ module.exports = createCoreController('api::comment.comment', ({ strapi }) => ({
         thread,
         author_name: displayNameOf(user),
         author_base44_id: user.base44_id || String(user.id),
+        author_avatar: await avatarUrlOf(user),
         author: { connect: [user.documentId] },
         ...(parent ? { parent: { connect: [parent] } } : {}),
         ...(Array.isArray(images) && images.length ? { images } : {}),

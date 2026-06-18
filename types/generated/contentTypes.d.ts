@@ -456,6 +456,7 @@ export interface ApiCommentComment extends Struct.CollectionTypeSchema {
       'manyToOne',
       'plugin::users-permissions.user'
     >;
+    author_avatar: Schema.Attribute.String;
     author_base44_id: Schema.Attribute.String;
     author_name: Schema.Attribute.String;
     content: Schema.Attribute.Text & Schema.Attribute.Required;
@@ -565,6 +566,7 @@ export interface ApiThreadThread extends Struct.CollectionTypeSchema {
       'manyToOne',
       'plugin::users-permissions.user'
     >;
+    author_avatar: Schema.Attribute.String;
     author_base44_id: Schema.Attribute.String;
     author_name: Schema.Attribute.String;
     category: Schema.Attribute.String;

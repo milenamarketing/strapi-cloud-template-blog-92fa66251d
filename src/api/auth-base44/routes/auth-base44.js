@@ -16,5 +16,11 @@ module.exports = {
         auth: false,
       },
     },
+    {
+      // Eigenes Profilbild setzen/entfernen (Login + Permission erforderlich).
+      method: 'PUT',
+      path: '/me/avatar',
+      handler: 'auth-base44.updateAvatar',
+    },
   ],
 };

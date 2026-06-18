@@ -30,11 +30,12 @@ module.exports = {
     // Strapi-JWT für die weiteren Community-Calls ausstellen.
     const jwt = strapi.plugin('users-permissions').service('jwt').issue({ id: user.id });
 
-    // Rolle laden, damit das Frontend Moderatorinnen erkennt.
+    // Rolle + Avatar laden (Frontend erkennt Moderatorinnen + zeigt Profilbild).
     const fullUser = await strapi.db
       .query('plugin::users-permissions.user')
-      .findOne({ where: { id: user.id }, populate: ['role'] });
+      .findOne({ where: { id: user.id }, populate: ['role', 'avatar'] });
     const role = (fullUser && fullUser.role && fullUser.role.type) || 'authenticated';
+    const avatar = (fullUser && fullUser.avatar && fullUser.avatar.url) || null;
 
     ctx.body = {
       jwt,
@@ -46,7 +47,27 @@ module.exports = {
         display_name: user.display_name,
         base44_id: user.base44_id,
         role,
+        avatar,
       },
     };
+  },
+
+  // Eigenes Profilbild setzen (avatar = Upload-File-ID) oder entfernen (null).
+  async updateAvatar(ctx) {
+    const user = ctx.state.user;
+    if (!user) return ctx.unauthorized('Login erforderlich.');
+
+    const body = (ctx.request.body && (ctx.request.body.data || ctx.request.body)) || {};
+    const avatarId = body.avatar || null;
+
+    await strapi.db
+      .query('plugin::users-permissions.user')
+      .update({ where: { id: user.id }, data: { avatar: avatarId } });
+
+    const full = await strapi.db
+      .query('plugin::users-permissions.user')
+      .findOne({ where: { id: user.id }, populate: ['avatar'] });
+
+    ctx.body = { data: { avatar: (full && full.avatar && full.avatar.url) || null } };
   },
 };

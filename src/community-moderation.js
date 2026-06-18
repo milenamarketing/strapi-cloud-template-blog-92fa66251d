@@ -28,4 +28,13 @@ async function canModify(user, entityWithAuthor) {
   return isModerator(user);
 }
 
-module.exports = { isModerator, canModify };
+/** Liefert die Avatar-URL der Nutzerin (oder null) – für denormalisierte Anzeige. */
+async function avatarUrlOf(user) {
+  if (!user) return null;
+  const full = await strapi.db
+    .query('plugin::users-permissions.user')
+    .findOne({ where: { id: user.id }, populate: ['avatar'] });
+  return (full && full.avatar && full.avatar.url) || null;
+}
+
+module.exports = { isModerator, canModify, avatarUrlOf };

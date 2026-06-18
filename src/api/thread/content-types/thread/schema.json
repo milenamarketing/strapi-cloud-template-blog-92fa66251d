@@ -43,6 +43,9 @@
     "author_base44_id": {
       "type": "string"
     },
+    "author_avatar": {
+      "type": "string"
+    },
     "author": {
       "type": "relation",
       "relation": "manyToOne",
