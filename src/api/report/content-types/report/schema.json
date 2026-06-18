@@ -43,6 +43,15 @@
       "enum": ["pending", "justified", "rejected"],
       "default": "pending"
     },
+    "moderation_action": {
+      "type": "enumeration",
+      "enum": ["none", "delete_content"],
+      "default": "none"
+    },
+    "content_deleted": {
+      "type": "boolean",
+      "default": false
+    },
     "reported_user_name": {
       "type": "string"
     },
