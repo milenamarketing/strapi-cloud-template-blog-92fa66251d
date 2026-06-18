@@ -524,6 +524,7 @@ export interface ApiReportReport extends Struct.CollectionTypeSchema {
   };
   attributes: {
     comment: Schema.Attribute.Relation<'manyToOne', 'api::comment.comment'>;
+    context_text: Schema.Attribute.Text;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -536,13 +537,21 @@ export interface ApiReportReport extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
     reason: Schema.Attribute.Enumeration<
-      ['spam', 'harassment', 'inappropriate', 'misinformation', 'other']
+      [
+        'harassment',
+        'spam',
+        'off_topic',
+        'inappropriate',
+        'misinformation',
+        'other',
+      ]
     > &
       Schema.Attribute.DefaultTo<'other'>;
     reporter_base44_id: Schema.Attribute.String;
     reporter_name: Schema.Attribute.String;
     status: Schema.Attribute.Enumeration<['open', 'reviewed', 'resolved']> &
       Schema.Attribute.DefaultTo<'open'>;
+    target_type: Schema.Attribute.Enumeration<['thread', 'comment']>;
     thread: Schema.Attribute.Relation<'manyToOne', 'api::thread.thread'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &

@@ -14,10 +14,17 @@
   "attributes": {
     "reason": {
       "type": "enumeration",
-      "enum": ["spam", "harassment", "inappropriate", "misinformation", "other"],
+      "enum": ["harassment", "spam", "off_topic", "inappropriate", "misinformation", "other"],
       "default": "other"
     },
     "details": {
+      "type": "text"
+    },
+    "target_type": {
+      "type": "enumeration",
+      "enum": ["thread", "comment"]
+    },
+    "context_text": {
       "type": "text"
     },
     "reporter_base44_id": {
