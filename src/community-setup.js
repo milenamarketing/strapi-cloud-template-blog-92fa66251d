@@ -19,7 +19,7 @@ const PUBLIC_PERMISSIONS = {
 };
 
 const AUTHENTICATED_PERMISSIONS = {
-  thread: ['find', 'findOne', 'create', 'update', 'delete'],
+  thread: ['find', 'findOne', 'create', 'update', 'delete', 'toggleLike'],
   comment: ['find', 'findOne', 'create', 'update', 'delete'],
   like: ['find', 'findOne', 'create', 'delete'],
 };

@@ -3,10 +3,9 @@
 /**
  * thread controller
  *
- * Erstellen über den Document-Service mit Whitelist: nur title/content/category
- * aus dem Request. Autor wird SERVERSEITIG gesetzt: als Relation (für Besitz/
- * Moderation) UND als denormalisierter author_name (für die öffentliche Anzeige,
- * da Strapi die User-Relation aus öffentlichen Antworten heraussanitisiert).
+ * - create: Whitelist (title/content/category), Autor + author_name serverseitig.
+ * - toggleLike: schaltet das Like der eingeloggten Nutzerin für einen Thread um
+ *   (idempotent, kein Doppel-Like) und hält likes_count aktuell.
  */
 
 const { createCoreController } = require('@strapi/strapi').factories;
@@ -35,5 +34,41 @@ module.exports = createCoreController('api::thread.thread', ({ strapi }) => ({
 
     const sanitized = await this.sanitizeOutput(entity, ctx);
     return this.transformResponse(sanitized);
+  },
+
+  async toggleLike(ctx) {
+    const user = ctx.state.user;
+    if (!user) return ctx.unauthorized('Login erforderlich.');
+
+    const threadDocId = ctx.params.id;
+    const thread = await strapi.documents('api::thread.thread').findOne({ documentId: threadDocId });
+    if (!thread) return ctx.notFound('Thema nicht gefunden.');
+
+    const existing = await strapi.documents('api::like.like').findMany({
+      filters: { thread: { documentId: threadDocId }, user: { id: user.id } },
+      limit: 1,
+    });
+
+    let liked;
+    if (existing.length > 0) {
+      await strapi.documents('api::like.like').delete({ documentId: existing[0].documentId });
+      liked = false;
+    } else {
+      await strapi.documents('api::like.like').create({
+        data: { thread: { connect: [threadDocId] }, user: { connect: [user.documentId] } },
+      });
+      liked = true;
+    }
+
+    // likes_count robust neu zählen und am Thread speichern.
+    const likesCount = await strapi.db
+      .query('api::like.like')
+      .count({ where: { thread: { documentId: threadDocId } } });
+    await strapi.documents('api::thread.thread').update({
+      documentId: threadDocId,
+      data: { likes_count: likesCount },
+    });
+
+    ctx.body = { data: { liked, likes_count: likesCount } };
   },
 }));

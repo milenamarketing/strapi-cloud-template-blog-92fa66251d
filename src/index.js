@@ -1,5 +1,4 @@
 'use strict';
-const seedExampleApp = require("./bootstrap");
 const { setupCommunity } = require("./community-setup");
 
 module.exports = {
@@ -19,8 +18,6 @@ module.exports = {
    * run jobs, or perform some special logic.
    */
   async bootstrap() {
-    // Blog-Template-Seed (nur beim ersten Start) – harmlos, bleibt vorerst erhalten.
-    await seedExampleApp();
     // Community-Rollen & -Rechte bei jedem Start idempotent sicherstellen.
     await setupCommunity();
   },
