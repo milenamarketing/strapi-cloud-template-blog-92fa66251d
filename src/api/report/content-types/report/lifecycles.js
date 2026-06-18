@@ -23,11 +23,14 @@ async function handleVerdict(result) {
   const field =
     result.target_type === 'comment' ? 'reporting_count_comments' : 'reporting_count_posts';
 
+  // Nutzer über die Document-API holen (liefert documentId – nötig fürs connect).
   let user = null;
   if (result.reported_user_base44_id) {
-    user = await strapi.db
-      .query('plugin::users-permissions.user')
-      .findOne({ where: { base44_id: result.reported_user_base44_id } });
+    const found = await strapi.documents('plugin::users-permissions.user').findMany({
+      filters: { base44_id: result.reported_user_base44_id },
+      limit: 1,
+    });
+    user = found && found[0];
   }
 
   if (desiredCounted) {
@@ -39,7 +42,7 @@ async function handleVerdict(result) {
     }
     await strapi.documents('api::report.report').update({
       documentId: result.documentId,
-      data: { counted: true, ...(user ? { reported_user: { set: [user.documentId] } } : {}) },
+      data: { counted: true, ...(user ? { reported_user: { connect: [user.documentId] } } : {}) },
     });
   } else {
     if (user) {
