@@ -61,7 +61,7 @@ const ReportAlertPanel = ({ model, documentId, document }) => {
   if (count === null || count <= THRESHOLD) return null;
 
   return {
-    title: '⚠️ Warnung (Warnung)',
+    title: '⚠️ Warnung (Warning)',
     content: (
       <Alert variant="danger" title="Zu viele bestätigte Meldungen (Too many confirmed reports)">
         {`Dieser Nutzer hat in den letzten 7 Tagen ${count} bestätigte Meldungen erhalten ` +
