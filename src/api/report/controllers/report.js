@@ -25,6 +25,7 @@ module.exports = createCoreController('api::report.report', ({ strapi }) => ({
     let targetType = null;
     let contextText = null;
     let authorId = null; // numerische User-ID des gemeldeten Autors (für Zähler)
+    let authorDocId = null; // documentId des Autors (für die Relation reported_user)
     if (thread) {
       targetType = 'thread';
       const t = await strapi.documents('api::thread.thread').findOne({
@@ -34,6 +35,7 @@ module.exports = createCoreController('api::report.report', ({ strapi }) => ({
       if (t) {
         contextText = `${t.title || ''} — ${t.content || ''}`.slice(0, 1000);
         authorId = t.author && t.author.id;
+        authorDocId = t.author && t.author.documentId;
       }
     } else if (comment) {
       targetType = 'comment';
@@ -44,6 +46,7 @@ module.exports = createCoreController('api::report.report', ({ strapi }) => ({
       if (c) {
         contextText = (c.content || '').slice(0, 1000);
         authorId = c.author && c.author.id;
+        authorDocId = c.author && c.author.documentId;
       }
     }
 
@@ -58,6 +61,7 @@ module.exports = createCoreController('api::report.report', ({ strapi }) => ({
         reporter_name: displayNameOf(user),
         ...(thread ? { thread: { connect: [thread] } } : {}),
         ...(comment ? { comment: { connect: [comment] } } : {}),
+        ...(authorDocId ? { reported_user: { connect: [authorDocId] } } : {}),
       },
     });
 

@@ -47,6 +47,12 @@
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::comment.comment"
+    },
+    "reported_user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "reports_received"
     }
   }
 }

@@ -111,6 +111,12 @@
       "relation": "oneToMany",
       "target": "api::ban-appeal.ban-appeal",
       "mappedBy": "user"
+    },
+    "reports_received": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::report.report",
+      "mappedBy": "reported_user"
     }
   }
 }
